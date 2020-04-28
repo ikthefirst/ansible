@@ -4,15 +4,28 @@
 # Pre-requisite:
 # SSH keypair generated using ssh-keygen.
 
-# After provision: test the 'control' node:
+# The 'rsync' method is used for synced folders. (ansible project folders)
+# This means that after changes within those folders on the host, a folder sync has to be triggered:
+# vagrant rsync
+
+# After the provisioning finishes, login to 'control' node:
 # vagrant ssh control
-# python --version
-# pyhon3 --version
+
+# Check if ansible is properly installed:
 # ansible --version
 
+# Before start using ansible, add the private key to the keyring. 
+# This is needed to be able to ssh to the other nodes from the control node.
+# eval $(ssh-agent -s)
+# ssh-add ~/.ssh/vagrant
+
+# Test ansible by pinging the other nodes
+# cd /ansible/ad-hoc
+# ansible -m ping all
+
 VAGRANTFILE_API_VERSION = "2"
-SSH_PRIVATE_KEY_PATH = "c:/Data/dev/_keys/vagrant"
-SSH_PUBLIC_KEY_PATH = "c:/Data/dev/_keys/vagrant.pub"
+SSH_PRIVATE_KEY_PATH = "c:/Data/dev/_keys/vagrant2"
+SSH_PUBLIC_KEY_PATH = "c:/Data/dev/_keys/vagrant2.pub"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	config.vm.box = "geerlingguy/centos7"
@@ -38,10 +51,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
 		# Inject SSH private  key
 		control.vm.provision "copy-ssh-private-key", type: "file", source: SSH_PRIVATE_KEY_PATH, destination: "~/.ssh/vagrant"
+		control.vm.provision :shell, name: "private-key-privileges", privileged: false, path: "vagrantscripts/private-key.sh"
 		
 		# Install Ansible
 		control.vm.provision :shell, name: "install-python3", path: "vagrantscripts/python3.sh"
 		control.vm.provision :shell, name: "install-ansible", path: "vagrantscripts/ansible.sh"
+		
+		# Add synced folders for ansible projects
+		control.vm.synced_folder "ad-hoc", "/ansible/ad-hoc", type: "rsync"
+
 	end
 
 	# Node#1
