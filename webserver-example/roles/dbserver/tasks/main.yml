@@ -1,0 +1,42 @@
+- name: "Install DB Software"
+  apt: pkg=mysql-server,python3-mysqldb
+
+- name: "Adding DB backup cronjob"
+  cron: 
+    hour=10 
+    minute=22 
+    user=root 
+    job="/usr/bin/mysqldump --all-databases > /root/dbbackup.dump"
+    name="mysql-db-backup" 
+
+- name: "Create DB"
+  mysql_db: 
+    name=ansibletutorial 
+    state=present
+  notify:
+  - import-db
+
+- name: "Copy DB dump"
+  copy: 
+    src=../files/dbdump.sql 
+    dest=/var/tmp/dbdump.sql 
+    owner=root
+    group=root
+    mode=0600
+
+- name: "Granting access"
+  mysql_user: 
+    name=ansibletutorial 
+    host=%
+    priv=ansibletutorial.*:ALL 
+    password={{ lookup('password', 'credentials/dbpassword.txt') }}
+
+- name: "Allowing remote access"
+  copy: 
+    src=../files/n-mysqld-bind.cnf 
+    dest=/etc/mysql/mysql.conf.d/n-mysqld-bind.cnf 
+    owner=root 
+    group=root 
+    mode=0644
+  notify:
+  - restart-mysql

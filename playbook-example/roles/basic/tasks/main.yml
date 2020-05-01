@@ -1,0 +1,17 @@
+#- name: "Installing VIM"
+#  apt:	pkg=vim state=present
+#- name: "Installing DNS Utils"
+#  apt:	pkg=dnsutils state=present
+#- name: "Installing GIT"
+#  apt:	pkg=git state=present
+
+- name: "Installing additional software"
+  apt: pkg=vim,dnsutils,git,ntp,at,lvm2 state=present
+
+# The backup will only be created if it does not yet exist. The 'creates' part will ensure this.
+- name: "Archive hello"
+  shell: creates:/home/vagrant/hello.bak mv /home/vagrant/hello.txt /home/vagrant/hello.bak
+
+- name: "Copy hello.txt"
+  copy: src=~/hello.txt dest=/home/vagrant/hello.txt owner=vagrant group=vagrant mode=0644
+

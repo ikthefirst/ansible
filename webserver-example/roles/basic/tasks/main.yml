@@ -1,0 +1,10 @@
+#- name: "Installing VIM"
+#  apt:	pkg=vim state=present
+#- name: "Installing DNS Utils"
+#  apt:	pkg=dnsutils state=present
+#- name: "Installing GIT"
+#  apt:	pkg=git state=present
+
+- name: "Installing additional software"
+  apt: pkg=vim,dnsutils,git,ntp,at,lvm2,net-tools state=present
+

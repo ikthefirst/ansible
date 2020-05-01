@@ -1,0 +1,41 @@
+- name: "Install Appserver Software"
+  apt: 
+    pkg=gunicorn,supervisor,python3-mysqldb,python3-falcon 
+    state=present
+
+- name: "Enable and start supervisor"
+  service: 
+    name=supervisor state=started 
+    enabled=yes
+
+- name: "Create base foder for the application"
+  file: 
+    path=/opt/testapp 
+    state=directory 
+    owner=nobody
+    group=nogroup
+    mode=0755
+
+- name: "Copy the application"
+  copy:
+    src=../files/testapp.py
+    dest=/opt/testapp/testapp.py
+    owner=nobody
+    group=nogroup
+    mode=0755
+  notify:
+  - restart-app
+
+- name: "Copy supervisor config file"  
+  template: 
+    src=../files/testapp.conf
+    dest=/etc/supervisor/conf.d/testapp.conf
+    owner=nobody
+    group=nogroup
+    mode=0644
+  notify:
+  - reread-config
+  - restart-app
+
+- name: "Add dbserver to /etc/hosts"
+  lineinfile: name=/etc/hosts line="{{ hostvars['node3']['ansible_enp0s8']['ipv4']['address'] }} dbserver"
