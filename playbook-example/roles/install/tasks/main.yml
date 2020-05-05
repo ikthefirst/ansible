@@ -1,0 +1,11 @@
+- name: Run Update and Upgrade (apt-get update and apt-get upgrade)
+  become: yes
+  apt:
+    upgrade: 'yes'
+    update_cache: yes
+
+- name: Installing Networking Tools
+  apt: name=net-tools
+
+- name: Installing  DNS Tools
+  apt: name=dnsutils
